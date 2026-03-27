@@ -1,6 +1,6 @@
 import aiosqlite
-
-DB_NAME = 'quiz_bot.db'
+import asyncio
+DB_NAME = './database/quiz_bot.db'
 
 async def get_quiz_index(user_id):
     # Подключаемся к базе данных
@@ -13,6 +13,8 @@ async def get_quiz_index(user_id):
                 return results[0]
             else:
                 return 0
+
+
 async def update_quiz_index(user_id, index):
     # Создаем соединение с базой данных (если она не существует, она будет создана)
     async with aiosqlite.connect(DB_NAME) as db:
@@ -25,6 +27,30 @@ async def create_table():
     # Создаем соединение с базой данных (если она не существует, она будет создана)
     async with aiosqlite.connect(DB_NAME) as db:
         # Создаем таблицу
-        await db.execute('''CREATE TABLE IF NOT EXISTS quiz_state (user_id INTEGER PRIMARY KEY, question_index INTEGER)''')
+        await db.execute('''CREATE TABLE IF NOT EXISTS quiz_state (user_id INTEGER PRIMARY KEY, question_index INTEGER, current_score INTEGER DEFAULT 0)''')
         # Сохраняем изменения
         await db.commit()
+async def add_score(user_id):
+    print(user_id)
+    print("Добавляем очко!")
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute('UPDATE quiz_state SET current_score = current_score + 1 WHERE user_id = ?', (user_id,))
+        await db.commit()
+    async with aiosqlite.connect(DB_NAME) as db:
+        async with db.execute("SELECT user_id, current_score FROM quiz_state WHERE user_id = ?", (user_id,)) as cursor:
+            print("after add_score:", await cursor.fetchone())
+
+async def get_stat():
+    async with aiosqlite.connect(DB_NAME) as db:
+        async with db.execute('SELECT user_id, current_score from quiz_state ORDER BY current_score DESC LIMIT 10') as cursor:
+            results = ""
+            top_scores = await cursor.fetchall()
+            for user in top_scores:
+                print(user)
+                results += f"{user[0]}: {user[1]}\n"
+            print(results)
+            if results:
+                return results
+            else:
+                return "Пока нет данных по участникам"
+
