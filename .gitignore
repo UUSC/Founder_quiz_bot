@@ -1,0 +1,6 @@
+config/
+database/
+telegram_functions/
+.env
+main.py
+quiz_bot.db
