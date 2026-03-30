@@ -1,5 +1,4 @@
 import aiosqlite
-import asyncio
 DB_NAME = './database/quiz_bot.db'
 
 async def get_quiz_index(user_id):
@@ -14,15 +13,20 @@ async def get_quiz_index(user_id):
             else:
                 return 0
 
-
 async def update_quiz_index(user_id, index):
+    print(f"курент индекс в функции подстановки в БД {index}")
     # Создаем соединение с базой данных (если она не существует, она будет создана)
     async with aiosqlite.connect(DB_NAME) as db:
         # Вставляем новую запись или заменяем ее, если с данным user_id уже существует
-        await db.execute('INSERT OR REPLACE INTO quiz_state (user_id, question_index) VALUES (?, ?)', (user_id, index))
+        #
+        await db.execute('UPDATE quiz_state SET question_index = ? WHERE user_id = ?', (index, user_id))
         # Сохраняем изменения
         await db.commit()
 
+async def create_user(user_id, index):
+    async with aiosqlite.connect(DB_NAME) as db:
+        await db.execute('INSERT OR REPLACE INTO quiz_state (user_id, question_index) VALUES (?, ?)', (user_id, index))
+        await db.commit()
 async def create_table():
     # Создаем соединение с базой данных (если она не существует, она будет создана)
     async with aiosqlite.connect(DB_NAME) as db:
