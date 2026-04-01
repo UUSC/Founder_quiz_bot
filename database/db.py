@@ -14,11 +14,9 @@ async def get_quiz_index(user_id):
                 return 0
 
 async def update_quiz_index(user_id, index):
-    print(f"курент индекс в функции подстановки в БД {index}")
     # Создаем соединение с базой данных (если она не существует, она будет создана)
     async with aiosqlite.connect(DB_NAME) as db:
         # Вставляем новую запись или заменяем ее, если с данным user_id уже существует
-        #
         await db.execute('UPDATE quiz_state SET question_index = ? WHERE user_id = ?', (index, user_id))
         # Сохраняем изменения
         await db.commit()
